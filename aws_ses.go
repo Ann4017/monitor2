@@ -49,10 +49,10 @@ func (c *C_ses) Load_aws_config(_s_ini_file_path, _s_section string) error {
 	return nil
 }
 
-func (c *C_ses) Ses_aws_config(section *ini.Section) {
-	c.s_region = section.Key("region").String()
-	c.s_access_Key = section.Key("access_Key").String()
-	c.s_secret_key = section.Key("secret_key").String()
+func (c *C_ses) Ses_aws_config(_section *ini.Section) {
+	c.s_region = _section.Key("region").String()
+	c.s_access_Key = _section.Key("access_Key").String()
+	c.s_secret_key = _section.Key("secret_key").String()
 }
 
 func (c *C_ses) Write_email(_s_sender string, _s_recipient []string, _s_subject, _s_body string) {

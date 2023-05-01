@@ -84,6 +84,11 @@ func (m *Monitor) Run(_time_interval time.Duration) error {
 
 	}
 
+	err = m.h.Close_resp_body()
+	if err != nil {
+		return err
+	}
+
 	err = m.d.SQL_disconnect()
 	if err != nil {
 		return err
