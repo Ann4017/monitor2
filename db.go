@@ -4,23 +4,25 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
-	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
 	"gopkg.in/ini.v1"
 )
 
 type C_db struct {
-	s_user     string
-	s_pwd      string
-	s_host     string
-	s_port     string
-	s_database string
-	s_engine   string
-	pc_sql_db  *sql.DB
-	s_taget    []string
-	s_email    []string
-	s_id       []int
+	s_user          string
+	s_pwd           string
+	s_host          string
+	s_port          string
+	s_database      string
+	s_engine        string
+	pc_sql_db       *sql.DB
+	pc_sql_rows     *sql.Rows
+	s_taget         []string
+	s_email         []string
+	s_id            []int
+	s_crated_tables map[string]bool
+	s_err_rows      string
 }
 
 func (c *C_db) Load_db_config(_s_ini_file_path, _s_section string) error {
@@ -110,6 +112,10 @@ func (c *C_db) Select_target() error {
 }
 
 func (c *C_db) Create_table(_s_table string) error {
+	if c.s_crated_tables[_s_table] {
+		return nil
+	}
+
 	query := fmt.Sprintf(`create table if not exists %s (
 		id int primary key auto_increment,
 		url varchar(255),
@@ -122,28 +128,54 @@ func (c *C_db) Create_table(_s_table string) error {
 		return fmt.Errorf("create table err")
 	}
 
+	c.s_crated_tables[_s_table] = true
+
 	return nil
 }
 
-func (c *C_db) Insert_status(_s_taget_tables []string, _s_url string, _s_status string, _s_time string) error {
-	for _, table := range _s_taget_tables {
-		add_row_query := fmt.Sprintf(`insert into %s (url, status, time) 
-		values (?, ?, ?)`, table)
+func (c *C_db) Insert_status(_s_table string, _s_url string, _s_status string, _s_time string) error {
+	add_row_query := fmt.Sprintf("insert into %s (url, status, time) values (?, ?, ?)", _s_table)
 
-		_, err := c.pc_sql_db.Exec(add_row_query, _s_url, _s_status, _s_time)
-		if err != nil {
-			if strings.Contains(err.Error(), "doesn't exist") {
-				if err := c.Create_table(table); err != nil {
-					return fmt.Errorf("failed to create table")
-				}
-				_, err := c.pc_sql_db.Exec(add_row_query, _s_url, _s_status, _s_time)
-				if err != nil {
-					return fmt.Errorf("failed to insert row new")
-				}
-				continue
-			}
-			return fmt.Errorf("failed to insert row")
+	_, err := c.pc_sql_db.Exec(add_row_query, _s_url, _s_status, _s_time)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *C_db) Select_err_status(_s_table string) error {
+	query := fmt.Sprintf("select * from %s where status not like '%200%'", _s_table)
+	rows, err := c.pc_sql_db.Query(query)
+	if err != nil {
+		return err
+	}
+
+	c.pc_sql_rows = rows
+
+	var id int
+	var url string
+	var status string
+	var time string
+
+	for rows.Next() {
+		if err := rows.Scan(&id, &url, &status, &time); err != nil {
+			return err
 		}
+
+		c.s_err_rows += fmt.Sprintf("id:%d, url:%s, status:%s, time:%s", id, url, status, time)
+	}
+
+	if err := rows.Err(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *C_db) Close_rows() error {
+	if c.pc_sql_rows != nil {
+		return c.pc_sql_rows.Close()
 	}
 
 	return nil
