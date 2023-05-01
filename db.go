@@ -134,7 +134,7 @@ func (c *C_db) Create_table(_s_table string) error {
 }
 
 func (c *C_db) Insert_status(_s_table string, _s_url string, _s_status string, _s_time string) error {
-	add_row_query := fmt.Sprintf("insert into %s (url, status, time) values (?, ?, ?)", _s_table)
+	add_row_query := fmt.Sprintf("insert into %s (url, status, time) values (?, ?, ?)", "`"+_s_table+"`")
 
 	_, err := c.pc_sql_db.Exec(add_row_query, _s_url, _s_status, _s_time)
 	if err != nil {
@@ -145,7 +145,7 @@ func (c *C_db) Insert_status(_s_table string, _s_url string, _s_status string, _
 }
 
 func (c *C_db) Select_err_status(_s_table string) error {
-	query := fmt.Sprintf("select * from %s where status not like '%200%'", _s_table)
+	query := fmt.Sprintf("select * from %s where status not like '%200%'", "`"+_s_table+"`")
 	rows, err := c.pc_sql_db.Query(query)
 	if err != nil {
 		return err

@@ -60,10 +60,10 @@ func (m *Monitor) Run(_time_interval time.Duration) error {
 				return err
 			}
 
-			err = m.d.Create_table(url)
-			if err != nil {
-				return err
-			}
+			// err = m.d.Create_table(url)
+			// if err != nil {
+			// 	return err
+			// }
 
 			err = m.d.Insert_status(url, m.h.s_url, m.h.s_status, m.h.s_time)
 			if err != nil {
@@ -110,8 +110,8 @@ func (m *Monitor) Create_log() error {
 	return nil
 }
 
-func (m *Monitor) Insert_server(url, manager_email string) error {
-	_, err := m.d.pc_sql_db.Exec("insert into server (url, manager_email) values (?, ?)", url, manager_email)
+func (m *Monitor) Insert_server(_url, _manager_email string) error {
+	_, err := m.d.pc_sql_db.Exec("insert into server (url, manager_email) values (?, ?)", "`"+_url+"`", _manager_email)
 	if err != nil {
 		return err
 	}
@@ -119,8 +119,8 @@ func (m *Monitor) Insert_server(url, manager_email string) error {
 	return nil
 }
 
-func (m *Monitor) Delete_serer(id int) error {
-	_, err := m.d.pc_sql_db.Exec("delete from server where id = ?", id)
+func (m *Monitor) Delete_serer(_id int) error {
+	_, err := m.d.pc_sql_db.Exec("delete from server where id = ?", _id)
 	if err != nil {
 		return err
 	}
@@ -128,8 +128,8 @@ func (m *Monitor) Delete_serer(id int) error {
 	return nil
 }
 
-func (m *Monitor) Update_server(id int, url, manager_email string) error {
-	_, err := m.d.pc_sql_db.Exec("update server set url = ?, manager_email = ? where = ?", url, manager_email, id)
+func (m *Monitor) Update_server(_id int, _url, _manager_email string) error {
+	_, err := m.d.pc_sql_db.Exec("update server set url = ?, manager_email = ? where = ?", "`"+_url+"`", _manager_email, _id)
 	if err != nil {
 		return err
 	}
